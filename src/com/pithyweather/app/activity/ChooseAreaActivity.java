@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
-import android.app.DownloadManager.Query;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -34,7 +33,7 @@ public class ChooseAreaActivity extends Activity {
 	public static final int LEVEL_PROVINCE = 0;
 	public static final int LEVEL_CITY = 1;
 	public static final int LEVEL_COUNTY = 2;
-
+	
 	private ProgressDialog progressDialog;
 	private TextView titleText;
 	private ListView listView;
@@ -73,6 +72,7 @@ public class ChooseAreaActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		isFromWeatherActivity = getIntent().getBooleanExtra("from_weather_activity", false);
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		if (prefs.getBoolean("city_selected", false) && !isFromWeatherActivity) {
 			Intent intent = new Intent(this, WeatherActivity.class);
@@ -84,16 +84,13 @@ public class ChooseAreaActivity extends Activity {
 		setContentView(R.layout.choose_area);
 		listView = (ListView) findViewById(R.id.list_view);
 		titleText = (TextView) findViewById(R.id.title_text);
-		adapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, dataList);
+		adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataList);
 		listView.setAdapter(adapter);
 		pithyWeatherDB = PithyWeatherDB.getInstance(this);
 		listView.setOnItemClickListener(new OnItemClickListener() {
-
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int index,
+			public void onItemClick(AdapterView<?> arg0, View view, int index,
 					long arg3) {
-				// TODO Auto-generated method stub
 				if (currentLevel == LEVEL_PROVINCE) {
 					selectedProvince = provinceList.get(index);
 					queryCities();
@@ -109,7 +106,7 @@ public class ChooseAreaActivity extends Activity {
 				}
 			}
 		});
-		queryProvinces();
+		queryProvinces();  // 加载省级数据
 	}
 
 	/**
@@ -253,13 +250,17 @@ public class ChooseAreaActivity extends Activity {
 	 */
 	@Override
 	public void onBackPressed() {
-		// TODO Auto-generated method stub
 		if (currentLevel == LEVEL_COUNTY) {
 			queryCities();
-		}else if (currentLevel == LEVEL_CITY) {
+		} else if (currentLevel == LEVEL_CITY) {
 			queryProvinces();
-		}else {
+		} else {
+			if (isFromWeatherActivity) {
+				Intent intent = new Intent(this, WeatherActivity.class);
+				startActivity(intent);
+			}
 			finish();
 		}
 	}
+
 }
